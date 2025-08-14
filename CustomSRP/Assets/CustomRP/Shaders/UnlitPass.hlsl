@@ -22,24 +22,53 @@ cbuffer UnityPerMaterial
         Material-related variables (such as color and texture samplers)
 */
 
-CBUFFER_START(UnityPerMaterial)
-float4 _BaseColor;
-CBUFFER_END
+// Wrap the material properties using the CBUFFER macro directive of the Core RP Library to enable the Shader to support SRP Batcher, and automatically disable it on platforms that do not support SRP Batcher.
+// After CBUFFER_START, a parameter should be added, which represents the name of the C buffer (Unity has some built-in names, such as UnityPerMaterial and UnityPerDraw).
+// CBUFFER_START(UnityPerMaterial)
+// float4 _BaseColor;
+// CBUFFER_END
+
+// To use GPU Instancing, each instance data needs to be constructed as an array, and each instance data is wrapped using UNITY_INSTANCING_BUFFER_START(END)
+UNITY_INSTANCING_BUFFER_START(UnityPerMaterial)
+    // The definition format of _BaseColor in an array
+    UNITY_DEFINE_INSTANCED_PROP(float4, _BaseColor)
+UNITY_INSTANCING_BUFFER_END(UnityPerMaterial)
+
+struct Attributes
+{
+    float3 positionOS : POSITION;
+    UNITY_VERTEX_INPUT_INSTANCE_ID
+};
+
+struct Varyings
+{
+    float4 positionCS : SV_POSITION;
+	UNITY_VERTEX_INPUT_INSTANCE_ID
+};
 
 
 /*
     ': ???' means return value is ???
 */
 
-float4 UnlitPassVertex(float3 positionOS : POSITION) : SV_POSITION
+Varyings UnlitPassVertex(Attributes input)
 {
-    float3 positionWS = TransformObjectToWorld(positionOS.xyz);
-    return TransformWorldToHClip(positionWS);
+    Varyings output;
+    // Extract the ID of the instance from the input and store it in the global static variable on which other instantiated macros depend
+    UNITY_SETUP_INSTANCE_ID(input);
+    // Pass instance ID to output
+    UNITY_TRANSFER_INSTANCE_ID(input, output);
+    float3 positionWS = TransformObjectToWorld(input.positionOS);
+    output.positionCS = TransformWorldToHClip(positionWS);
+    return output;
 }
 
-float4 UnlitPassFragment() : SV_TARGET
+float4 UnlitPassFragment(Varyings input) : SV_TARGET
 {
-    return _BaseColor;
+    // Extract the ID of the instance from the input and store it in the global static variable on which other instantiated macros depend
+    UNITY_SETUP_INSTANCE_ID(input);
+    // Obtain the data for each instance
+    return UNITY_ACCESS_INSTANCED_PROP(UnityPerMaterial, _BaseColor);;
 }
 
 #endif
