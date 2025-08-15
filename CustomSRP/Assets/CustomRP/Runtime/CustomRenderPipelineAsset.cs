@@ -8,8 +8,14 @@ using UnityEngine.Rendering;
 [CreateAssetMenu(menuName = "Rendering/Custom Render Pipeline")]
 public class CustomRenderPipelineAsset : RenderPipelineAsset
 {
+    [SerializeField]
+    bool useDynamicBatching = true;
+    [SerializeField]
+    bool useGPUInstancing = true;
+    [SerializeField]
+    bool useSRPBather = true;
     protected override RenderPipeline CreatePipeline()
     {
-        return new CustomRenderPipeline();
+        return new CustomRenderPipeline(useDynamicBatching, useGPUInstancing, useSRPBather);
     }
 }
