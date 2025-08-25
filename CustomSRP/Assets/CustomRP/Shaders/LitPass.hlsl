@@ -2,6 +2,9 @@
 #define CUSTOM_LIT_PASS_INCLUDE
 
 #include "../ShaderLibrary/Common.hlsl"
+#include "../ShaderLibrary/Surface.hlsl"
+#include "../ShaderLibrary/Light.hlsl"
+#include "../ShaderLibrary/Lighting.hlsl"
 
 /*
 // Constant buffers aren't supported on all platforms—like OpenGL ES 2.0—so instead of using cbuffer directly 
@@ -98,13 +101,21 @@ float4 LitPassFragment(Varyings input) : SV_TARGET
     base.rgb = abs(length(input.normalWS) - 1) * 10;
     */
     
-    base.rgb = normalize(input.normalWS);
+    //base.rgb = normalize(input.normalWS);
     
 #if defined(_CLIPPING)
     // It will abort and discard the fragment if the value we pass it is zero or less. 
     clip(base.a - UNITY_ACCESS_INSTANCED_PROP(UnityPerMaterial, _Cutoff));
 #endif
-    return base;
+    
+    Surface surface;
+    surface.normal = normalize(input.normalWS);
+    surface.color = base.rgb;
+    surface.alpha = base.a;
+    
+    float3 color = GetLighting(surface);
+    
+    return float4(color, surface.alpha);
 }
 
 #endif
