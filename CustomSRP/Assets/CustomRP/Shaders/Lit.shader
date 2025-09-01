@@ -36,6 +36,16 @@ Shader "Custom RP/Lit"
 
             HLSLPROGRAM
             /*
+                Loops with a variable length used to be a problem for shaders, but modern GPUs can deal with them without issues, e
+                specially when all fragments of a draw call iterate over the same data in the same way. 
+                However, the OpenGL ES 2.0 and WebGL 1.0 graphics APIs can't deal with such loops by default.
+                On very old-fashioned hardware all code blocks will always get executed, their contribution controlled via conditional assignments. 
+                While we could make this work it makes the code more complex, because we'd have to make other adjustments as well. 
+                So I opt to ignore these limitations and turn off WebGL 1.0 and OpenGL ES 2.0 support in builds for the sake of simplicity. They don't support linear lighting anyway. 
+                We can also avoid compiling OpenGL ES 2.0 shader variants for them by raising the target level of our shader pass to 3.5, via the **#pragma target 3.5** directive. Let's be consistent and do this for both shaders.
+            */
+            #pragma target 3.5
+            /*
                 Enabling the toggle will add the _CLIPPING keyword to the material's list of active keywords, while disabling will remove it. But that doesn't do anything on its own. 
                 We have to tell Unity to compile a different version of our shader based on whether the keyword is defined or not. 
             */

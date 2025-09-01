@@ -21,6 +21,12 @@ public class CustomRenderPipeline : RenderPipeline
             But this only works if the shader adheres to a strict structure for uniform data.
          */
         GraphicsSettings.useScriptableRenderPipelineBatching = useSRPBatcher;
+
+        /*
+            The final color already applied the light's intensity, but by default Unity doesn't convert it to linear space. 
+            We have to set GraphicsSettings.lightsUseLinearIntensity to true
+         */
+        GraphicsSettings.lightsUseLinearIntensity = true;
     }
 
     protected override void Render(ScriptableRenderContext context, Camera[] cameras)
